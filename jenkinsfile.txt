@@ -1,0 +1,44 @@
+pipeline {
+    agent any
+    environment {
+        DOCKER_IMAGE = 'your-dockerhub-username/sample-app:latest'
+        CLOUD_DEPLOY_SCRIPT = './deploy.sh' // Adjust if deploying to AWS/GCP
+    }
+    stages {
+        stage('Checkout Code') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh 'docker build -t $DOCKER_IMAGE .'
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                script {
+                    sh 'npm test'
+                }
+            }
+        }
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    sh 'docker login -u your-dockerhub-username -p your-password'
+                    sh 'docker push $DOCKER_IMAGE'
+                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                script {
+                    sh 'chmod +x $CLOUD_DEPLOY_SCRIPT'
+                    sh '$CLOUD_DEPLOY_SCRIPT'
+                }
+            }
+        }
+    }
+}
